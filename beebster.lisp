@@ -4,16 +4,7 @@
 
 
 
-(defun show-bbc ()
-  (let* ((str (drakma:http-request "http://www.bbc.co.uk/iplayer/search?q=lake"))
-	 (document (chtml:parse str (cxml-stp:make-builder))))
-    (stp:do-recursively (a document)
-      (when (and (typep a 'stp:element)
-		 (equal (stp:local-name a) "span")
-		 (equal (stp:attribute-value a "class") "title"))
-	(format t "~A:~%~A~%"
-		(stp:string-value a)
- 		(stp:attribute-value a "class"))))))
+
 
 
 (defun search-bbc (term)

@@ -40,7 +40,7 @@
     ((state-variable :parameter-type 'string))
   (with-html-output-to-string (*standard-output* nil :prologue t)
     (:html
-     (:head (:title "Hol dir einen runter!"))
+     (:head (:title "test Hunchentoot/cl-who"))
      (:body
       (:h1 "Hello, world!")
       (:p "This is my Lisp web server, running on Hunchentoot,"

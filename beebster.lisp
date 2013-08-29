@@ -3,7 +3,9 @@
 (in-package #:beebster)
 
 
-
+(defun highlights ()
+  "rss feed of the iplayer highlight page"
+  (drakma:http-request "http://feeds.bbc.co.uk/iplayer/highlights/tv"))
 
 
 
@@ -26,6 +28,13 @@
 
 
 
+(defun highlights-img ()
+  "return the url of the highlights thumbnails."
+  (mapcar #'(lambda (x) (all-matches-as-strings "h.*jpg" x))
+	  (all-matches-as-strings "img.*jpg" (highlights))))
+
+
+
 (define-easy-handler (easy-demo :uri "/lisp/hello"
                                 :default-request-type :get)
     ((state-variable :parameter-type 'string))
@@ -44,11 +53,21 @@
      (:img :src "http://31.media.tumblr.com/c6eb147b5c3d60f10c5480302c85a7d3/tumblr_mrxvhlcPpO1qzs4roo1_500.jpg"
 	 :alt "black forest"  :height "300" :width "400"
       )
+     (:img :src "http://ichef.bbci.co.uk/programmeimages/episode/p01djws9_640_360.jpg" :height "360" :width "640" )
      (:h3 "and a header")
      (loop for j below 4 do
 	  (htm
 	   (:p "more text")))
-     )))
+     (:table :border 0 :cellpadding 4
+      (loop for i below 10 do
+	   (htm
+	    (:img :src (first (nth i (highlights-img)))
+		  :height "300" :width "400" :alt
+		  (first (nth i (highlights-img-capture))))))))))
+
+(defun highlights-img-capture ()
+  (mapcar #'(lambda (x) (all-matches-as-strings "[A-Z].*" x))
+	  (all-matches-as-strings "alt=&quot.*&quot" (highlights))))
 
 
 

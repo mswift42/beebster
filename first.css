@@ -1,0 +1,35 @@
+table {
+    table-layout:auto;
+    float:center;
+    
+    
+}
+p {
+    font-size:large;
+    
+}
+body {
+    background-color:#202020;
+
+}
+.img {
+    width:300px;
+    height:200px;
+    padding:10px;
+    
+    
+    }
+.t1 {
+    width:100px;
+    color:#e2e2e5;
+    line-height:1.4em;
+    text-align:center;
+    
+    }
+
+#header {
+    color:#ff9800;
+    letter-spacing:0.14em;
+    text-align:center;
+}
+

@@ -10,7 +10,10 @@
                #:cl-ppcre
 	       #:drakma
 	       #:cxml-stp
-	       #:closure-html)
+	       #:closure-html
+	       #:parenscript
+	       #:inferior-shell
+	       #:split-sequence)
   :components ((:file "package")
                (:file "beebster")))
 

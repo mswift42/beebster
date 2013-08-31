@@ -1,7 +1,7 @@
 #menu {
     width:120px;
-    color:#e2e2e5;
-    float:left;
+    color:#202020;
+    float:top;
     margin:8px;
     background-color:#ff9800;
 }
@@ -9,7 +9,15 @@
 /*     table-layout:auto; */
 /*     float:center; */
     
-    
+.ms {
+    float:left
+    margin:10px;
+    background-color:#ff9800;
+    color:#202020;
+    display:inline;
+    padding:10px;
+    border:solid 2px;
+}
     
 /*} */
 p {

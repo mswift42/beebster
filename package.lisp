@@ -1,5 +1,7 @@
 ;;;; package.lisp
 
 (defpackage #:beebster
-  (:use #:cl :cl-ppcre :cl-who :hunchentoot  :cxml-stp))
+  (:use #:cl :cl-ppcre :cl-who :hunchentoot  :cxml-stp :inferior-shell
+	:split-sequence)
+  )
 

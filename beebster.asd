@@ -13,7 +13,9 @@
 	       #:closure-html
 	       #:parenscript
 	       #:inferior-shell
-	       #:split-sequence)
+	       #:split-sequence
+	       #:fiveam)
   :components ((:file "package")
-               (:file "beebster")))
+               (:file "beebster")
+	       (:file "tests")))
 

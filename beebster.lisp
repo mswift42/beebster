@@ -23,9 +23,10 @@
 (defun search-iplayer (term)
   "use get-iplayer to search for program."
   (if term
-      (butlast (all-matches-as-strings "[0-9].*"
-				       (inferior-shell:run/s
-					(concatenate 'string *iplayer-command* " " term))))
+      (butlast
+       (all-matches-as-strings "[0-9].*"
+			       (inferior-shell:run/s
+				(concatenate 'string *iplayer-command* " " term))))
       nil))
 
 (defun get-thumb-from-search (string)
@@ -54,10 +55,10 @@
 
 
 
-(push (create-static-file-dispatcher-and-handler "/first.css" "second.css") *dispatch-table*)
+(push (create-static-file-dispatcher-and-handler
+       "/first.css" "second.css") *dispatch-table*)
 
- (defparameter *user-search* '())
-(defvar *user-search-length* 0)
+
 
 (defmacro ah (dest desc)
   `(with-html-output (*standard-output* nil)
@@ -77,8 +78,6 @@
 	      :href "/first.css "))
       (:body ,@body))))
 
-(defun times-4 (n)
-  (* n 4))
 
 (define-easy-handler (iplayer-search :uri "/search"
 			     :default-request-type :both)
@@ -96,36 +95,41 @@
 			    :name "searchterm"
 			    :value searchterm))
 	       (:td (:input :type :submit :value "Submit" ))))))
-    (display-results (funcall 'search-iplayer searchterm))))
+    (display-results (search-iplayer searchterm))))
 
 (defun display-results (list)
+  "loop through list to display thumbnail and title
+   in a table with 3 columns."
   (let ((imgs (mapcar #'get-thumb-from-search list))
-	(desc (mapcar #'get-title-and-episode list)))
-    (loop for i from 0 to (- (length list)3) by 3 while i do
-	 (with-html-output (*standard-output* nil)
-	   (:table :border 0 :cellpadding 2
-		   (:tr
-		    (:td (iplayer-img "img" (first (nth i imgs))
-				      "text" "text"))
-		    (:td :class "t1" (fmt (first (nth i desc))))))))))
+	(desc (mapcar #'get-title-and-episode list))
+	(rows (* (ceiling (/ (length list) 3)) 3))) 
+    (with-html-output (*standard-output* nil)
+     (:table :class "results" :border 0 :cellpadding 2
+     (loop for i from 0 to rows by 3 and a in list while a do
+      (htm (:tr :align "center"
+       (loop for j to 2 while a do
+       (htm
+	(:td (iplayer-img "img"
+			  (first (nth (+ i j) imgs))
+			  (first (nth (+ i j) desc))
+			  (first (nth (+ i j) desc))))
+        (:td :class "t1" (fmt (first (nth (+ i j) desc)))))))))))))
 
 
 (define-easy-handler (test-2 :uri "/highlights"
 			     :default-request-type :get)
     ((state-variable :parameter-type 'string))
   (page-template
-      
       (:title "Highlights")
-      
     (:h3 :id "header" "Highlights")
-    (:table :border 0 :cellpadding 8
+    (:table :class "results" :border 0 :cellpadding 8
      (loop for i from 0 to 6 by 3 do
        (htm
 	(:tr :align "center"
 	  (loop for j to 2 do
 	   (htm
 	    (:td :class "img"
-		 (:img :src (image-by-number (+ i j)) :width 180 :height 140
+	      (:img :src (image-by-number (+ i j)) :width 180 :height 140
 		       :title (title-by-number (+ i j))  ))
 	    (:td :class "t1"
 		 (fmt (title-by-number (+ i j)))))))))

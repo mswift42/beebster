@@ -22,9 +22,11 @@
 
 (defun search-iplayer (term)
   "use get-iplayer to search for program."
-  (butlast (all-matches-as-strings "[0-9].*"
-				   (inferior-shell:run/s
-				    (concatenate 'string *iplayer-command* " " term)))))
+  (if term
+      (butlast (all-matches-as-strings "[0-9].*"
+				       (inferior-shell:run/s
+					(concatenate 'string *iplayer-command* " " term))))
+      nil))
 
 (defun get-thumb-from-search (string)
   "return thumbnail address in search-iplayer string."
@@ -94,14 +96,16 @@
 			    :name "searchterm"
 			    :value searchterm))
 	       (:td (:input :type :submit :value "Submit" ))))))
-    (display-results (mapcar #'get-thumb-from-search (search-iplayer (str searchterm))))))
+    (display-results (funcall 'search-iplayer searchterm))))
 
 (defun display-results (list)
-  (loop for in list while i do
-       (with-html-output (*standard-output* nil)
-	 (:tr
-	  (:td (iplayer-img "img" (first i)
-			    "text" "text"))))))
+  (let ((imgs (mapcar #'get-thumb-from-search list))
+	(desc (mapcar #'get-title-and-episode list)))
+    (loop for i from 0 to (- (length list)3) by 3 while i do
+	 (with-html-output (*standard-output* nil)
+	   (:tr
+	    (:td (iplayer-img "img" (first (nth i imgs))
+			      "text" "text")))))))
 
 
 (define-easy-handler (test-2 :uri "/highlights"

@@ -15,10 +15,13 @@
     (drakma:http-request "http://www.bbc.co.uk/iplayer/search"
 			 :parameters query)))
 
+(defparameter *selection* '())
+
 (defparameter *iplayer-command*
-  "get-iplayer --nocopyright --listformat \"<index> <pid> <thumbnail> <name> <episode>\"")
+  "get-iplayer --nocopyright --limitmatches 20 --listformat \"<index> <pid> <thumbnail> <name> <episode>\"")
 
 (defun search-iplayer (term)
+  "use get-iplayer to search for program."
   (butlast (all-matches-as-strings "[0-9].*"
 				   (inferior-shell:run/s
 				    (concatenate 'string *iplayer-command* " " term)))))
@@ -26,6 +29,10 @@
 (defun get-thumb-from-search (string)
   "return thumbnail address in search-iplayer string."
   (all-matches-as-strings "http.*jpg" string))
+
+(defun get-title-and-episode (string)
+  "return list of titles from search-iplayer string."
+  (all-matches-as-strings "[A-Z].*" string))
 
 (defun bbc-title (term)
   "search for title in bbc-page."
@@ -36,9 +43,6 @@
 		 (equal (stp:attribute-value i "class") "title"))
 	(format t "~A:~%" (string-trim
 			   '(#\Newline #\Tab) (stp:string-value i)))))))
-(defun get-thumbs (page)
-  (all-matches-as-strings "([a-z].{15}jpg)" page))
-
 
 
 (defun highlights-img ()
@@ -46,85 +50,59 @@
   (mapcar #'(lambda (x) (all-matches-as-strings "h.*jpg" x))
 	  (all-matches-as-strings "img.*jpg" (highlights))))
 
-(defparameter *selection* "")
 
-
-;; (define-easy-handler (easy-demo :uri "/lisp/hello"
-;;                                 :default-request-type :get)
-;;     ((state-variable :parameter-type 'string))
-;;   (with-html-output-to-string (*standard-output* nil :prologue t)
-;;     (:html
-;;      (:head (:title "test Hunchentoot/cl-who")
-;; 	    (:script (str (ps:ps (defun greeting-callback ()
-;; 				   (alert "Hoden!"))))))
-;;      (:body
-;;       (:h1 "Hello, world!")
-;;       (:p "Foray into parsing bbc and displaying it's thumbnails.")
-;;       (:p "this is some text from me")
-;;       ( :p :br "and more text")
-;;       (:img :class "pic" :src "http://ichef.bbci.co.uk/programmeimages/episode/p01djws9_640_360.jpg" :height "360" :width "640" )
-;;       (:h3 "and a header")
-;;       (:a :href "#" :onclick (ps:ps (greeting-callback))
-;; 	  "Pimmel!" )
-      
-;;       ))))
 
 (push (create-static-file-dispatcher-and-handler "/first.css" "second.css") *dispatch-table*)
-(push (create-static-file-dispatcher-and-handler "/black-forest.jpg" "/home/martin/Pictures/black_forest_in_germany-wide.jpg") *dispatch-table*)
+
+ (defparameter *user-search* '())
+(defvar *user-search-length* 0)
+
+(defmacro ah (dest desc)
+  `(with-html-output (*standard-output* nil)
+     (:a :href  ,dest ,desc)))
+
+(defmacro iplayer-img (class source title alt)
+  `(with-html-output (*standard-output* nil)
+     (:img :class ,class :src ,source
+	   :title ,title :alt ,alt :width 150 :height 84)))
+
 (defmacro page-template ((&key title) &body body)
   `(with-html-output-to-string (*standard-output* nil :prologue t)
      (:html
       (:head
        (:title ,title)
        (:link :type "text/css" :rel "stylesheet"
-	      :href "/first.css"))
+	      :href "/first.css "))
       (:body ,@body))))
+
+(defun times-4 (n)
+  (* n 4))
 
 (define-easy-handler (iplayer-search :uri "/search"
 			     :default-request-type :both)
-    ((state-variable :parameter-type 'string))
+    ((searchterm :parameter-type 'string))
   (page-template
       (:title "iplayer search")
-    
     (htm (:a :class "ms" :href "/highlights"  "highlights")
 	 (:a :class "ms" :href "/sitcoms" "sitcom"))
     (:h3 :id "header" "Search")
-    (:p "you should see some text.")
     (:p (:form
 	 :method :post
 	 (:table :border 0 :cellpadding 2
 	  (:tr (:td  :style "text-align:right;color:#e2e2e5" (str "Search"))
 	       (:td (:input :type :text :style "float:left"
-			    :name "state-variable"
-			    :value state-variable))
-	       (:td (:input :type :submit :value "Submit"))))
-	 (display-results (str state-variable))))
-    (setf *selection* state-variable)
-    (:p (str state-variable))
-    (htm
-     (test-display))
-    (display-results *selection*)
-    
-    ))
+			    :name "searchterm"
+			    :value searchterm))
+	       (:td (:input :type :submit :value "Submit" ))))))
+    (display-results (mapcar #'get-thumb-from-search (search-iplayer (str searchterm))))))
 
-(defun display-results (searchterm)
-  (let* ((sl (search-iplayer searchterm))
-	 (rows (values (ceiling (/ (length sl) 3))))
-	 (imgs (mapcar #'get-thumb-from-search sl)))
-    (with-html-output (*standard-output* nil :prologue t)
-      (:p "this is new text")
-      (loop for i from 0 to 3 do
-	   (htm
-	    (:tr :align "center"
-		 (loop for j from 0 to 2 do
-		      (htm
-		       (:td :class "img"
-			    (:img :src (first (nth (+ i j) imgs))))))))))
-    ))
+(defun display-results (list)
+  (loop for in list while i do
+       (with-html-output (*standard-output* nil)
+	 (:tr
+	  (:td (iplayer-img "img" (first i)
+			    "text" "text"))))))
 
-(defun test-display ()
-  (with-html-output-to-string (s)
-    (:p "only text is working")))
 
 (define-easy-handler (test-2 :uri "/highlights"
 			     :default-request-type :get)

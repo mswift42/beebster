@@ -103,9 +103,11 @@
 	(desc (mapcar #'get-title-and-episode list)))
     (loop for i from 0 to (- (length list)3) by 3 while i do
 	 (with-html-output (*standard-output* nil)
-	   (:tr
-	    (:td (iplayer-img "img" (first (nth i imgs))
-			      "text" "text")))))))
+	   (:table :border 0 :cellpadding 2
+		   (:tr
+		    (:td (iplayer-img "img" (first (nth i imgs))
+				      "text" "text"))
+		    (:td :class "t1" (fmt (first (nth i desc))))))))))
 
 
 (define-easy-handler (test-2 :uri "/highlights"

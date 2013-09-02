@@ -16,4 +16,8 @@
 (test test-thumbs-from-string
   (is (equal '("http://www.bbc.co.uk/iplayer/images/episode/b01mykr0_150_84.jpg") (get-thumb-from-search (first (last *test-list-1*))))))
 
-(fiveam:run!)
+(test test-title-and-episode
+ (is (equal '("Big School Episode 2")
+	    (get-title-and-episode (first *test-list-1*)))))
+
+(run!)

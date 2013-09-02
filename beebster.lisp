@@ -34,7 +34,7 @@
   (all-matches-as-strings "http.*jpg" string))
 
 (defun get-title-and-episode (string)
-  "return list of titles from search-iplayer string."
+   "return list of titles from search-iplayer string."
   (all-matches-as-strings "[A-Z].*" string))
 
 (defun bbc-title (term)
@@ -101,19 +101,19 @@
   "loop through list to display thumbnail and title
    in a table with 3 columns."
   (let ((imgs (mapcar #'get-thumb-from-search list))
-	(desc (mapcar #'get-title-and-episode list))
-	(rows (* (ceiling (/ (length list) 3)) 3))) 
-    (with-html-output (*standard-output* nil)
-     (:table :class "results" :border 0 :cellpadding 2
-     (loop for i from 0 to rows by 3 and a in list while a do
-      (htm (:tr :align "center"
-       (loop for j to 2 while a do
-       (htm
-	(:td (iplayer-img "img"
-			  (first (nth (+ i j) imgs))
-			  (first (nth (+ i j) desc))
-			  (first (nth (+ i j) desc))))
-        (:td :class "t1" (fmt (first (nth (+ i j) desc)))))))))))))
+	(desc (mapcar #'get-title-and-episode list)))
+    (if list
+     (with-html-output (*standard-output* nil)
+      (:div :id "rtable"
+       (loop for i in imgs and  a from 0 do 
+	(htm
+	 (:div :id "table"
+	 (:div :class "tablecell"
+	  (:div :class "t1"
+	   (:img :class "img" :src (first i)))
+	  (:div :class "t1"
+		(fmt (first (nth a desc)))))))) 
+       (:div :class "clear" "&nbsp;"))))))
 
 
 (define-easy-handler (test-2 :uri "/highlights"
@@ -156,3 +156,4 @@
 
 
 
+(fiveam:run!)

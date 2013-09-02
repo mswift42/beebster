@@ -41,6 +41,11 @@ body {
     text-align:center;
     
 }
+div.t1{
+    text-align:center;
+    color:#e2e2e5;
+    width:300px;
+    }
 
 #header {
     color:#ff9800;
@@ -55,3 +60,16 @@ body {
     padding:10px;
     border-left-width:20px;
 }
+
+div.rtable {
+    
+    width:300px;
+    }
+
+div.tablecell {
+    float:left;
+    width:300px;
+    text-align:center;
+    margin: 20px;
+    }
+

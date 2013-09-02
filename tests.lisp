@@ -20,4 +20,12 @@
  (is (equal '("Big School Episode 2")
 	    (get-title-and-episode (first *test-list-1*)))))
 
+(test test-get-info
+  (is (equal "get-iplayer -i 703" (get-info 703))))
+
+(test test-get-index-from-search
+  (is (equal '("234") (get-index-from-search "234 a_shiny world_2 3 1")))
+  (is (equal '("1") (get-index-from-search "1 1_hallo 2 3")))
+  (is (equal '("012345") (get-index-from-search "012345 012345 012345"))))
+
 (run!)

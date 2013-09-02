@@ -67,9 +67,17 @@ div.rtable {
     }
 
 div.tablecell {
-    float:left;
-    width:300px;
+    float:right
+    width:500px;
     text-align:center;
     margin: 20px;
+    }
+div.iplayerinfo {
+    height:500px;
+    width:400px;
+    margin: 50px;
+    text-align:center;
+    background-color:#808080;
+    float:right;
     }
 

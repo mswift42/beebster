@@ -37,6 +37,10 @@
    "return list of titles from search-iplayer string."
   (all-matches-as-strings "[A-Z].*" string))
 
+(defun get-index-from-search (string)
+  "return index from search-iplayer string."
+  (all-matches-as-strings "^[0-9]*" string))
+
 (defun bbc-title (term)
   "search for title in bbc-page."
   (let ((document (chtml:parse (search-bbc term) (cxml-stp:make-builder))))
@@ -101,7 +105,8 @@
   "loop through list to display thumbnail and title
    in a table with 3 columns."
   (let ((imgs (mapcar #'get-thumb-from-search list))
-	(desc (mapcar #'get-title-and-episode list)))
+	(desc (mapcar #'get-title-and-episode list))
+	(ind  (mapcar #'get-index-from-search list)))
     (if list
      (with-html-output (*standard-output* nil)
       (:div :id "rtable"
@@ -110,11 +115,45 @@
 	 (:div :id "table"
 	 (:div :class "tablecell"
 	  (:div :class "t1"
-	   (:img :class "img" :src (first i)))
+		(:a :href (get-url
+			   (first (nth a ind))) (:img :class "img" :src (first i))))
 	  (:div :class "t1"
 		(fmt (first (nth a desc)))))))) 
        (:div :class "clear" "&nbsp;"))))))
 
+(define-easy-handler (info :uri "/info")
+    (index)
+  
+    (page-template
+	(:title "Info")
+      (:h3 :id "header" "Info")
+      (display-image-and-info index))) 
+
+(defun display-image-and-info (index)
+  (let ((ind (load-thumbnail-for-index index)))
+    (with-html-output (*standard-output* nil)
+      (:img :src (first ind))
+      (:div :class "iplayerinfo"
+	    (:p (fmt (second ind)))))))
+
+
+(defun load-thumbnail-for-index (index)
+  "grep address for thumbnail size4 and description for entered index"
+  (let ((ind (run/s (get-info index))))
+    (list (first (all-matches-as-strings "htt.*"
+					 (first (all-matches-as-strings
+						 "thumbnail4.*" ind))))
+	  (first (all-matches-as-strings "[A-Z].*"
+					 (first (all-matches-as-strings
+						 "desc:.*" ind)))))))
+
+(defun get-url (index)
+  "return /info url string concatenated with the index"
+  (concatenate 'string "/info?index=" index ))
+
+(defun get-info (index)
+  "return get-iplayer info command for given index"
+  (concatenate 'string "get-iplayer -i" " " (prin1-to-string index)))
 
 (define-easy-handler (test-2 :uri "/highlights"
 			     :default-request-type :get)

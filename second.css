@@ -44,7 +44,8 @@ body {
 div.t1{
     text-align:center;
     color:#e2e2e5;
-    width:300px;
+    width:400px;
+    float:left;
     }
 
 #header {
@@ -67,7 +68,7 @@ div.rtable {
     }
 
 div.tablecell {
-    float:right
+    float:left;
     width:500px;
     text-align:center;
     margin: 20px;
@@ -81,3 +82,10 @@ div.iplayerinfo {
     float:right;
     }
 
+.downloadbutton {
+    width:80px;
+    height:30px;
+    float:left;
+    color:#808080;
+    }
+    

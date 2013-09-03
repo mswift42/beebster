@@ -18,7 +18,7 @@
 (defparameter *selection* '())
 
 (defparameter *iplayer-command*
-  "get-iplayer --nocopyright --limitmatches 20 --listformat \"<index> <pid> <thumbnail> <name> <episode>\"")
+  "get-iplayer --nocopyright --limitmatches 50 --listformat \"<index> <pid> <thumbnail> <name> <episode>\"")
 
 (defun search-iplayer (term)
   "use get-iplayer to search for program."
@@ -51,22 +51,18 @@
 	(format t "~A:~%" (string-trim
 			   '(#\Newline #\Tab) (stp:string-value i)))))))
 
+(defun iplayer-download-command (index)
+  "concatenate index to download command"
+  (concatenate 'string "get-iplayer -g --nocopyright --output=~/Videos/" " " index " --flvstreamer /usr/bin/flvstreamer"))
 
 (defun highlights-img ()
   "return the url of the highlights thumbnails."
   (mapcar #'(lambda (x) (all-matches-as-strings "h.*jpg" x))
 	  (all-matches-as-strings "img.*jpg" (highlights))))
 
-
-
 (push (create-static-file-dispatcher-and-handler
        "/first.css" "second.css") *dispatch-table*)
 
-
-
-(defmacro ah (dest desc)
-  `(with-html-output (*standard-output* nil)
-     (:a :href  ,dest ,desc)))
 
 (defmacro iplayer-img (class source title alt)
   `(with-html-output (*standard-output* nil)
@@ -111,7 +107,7 @@
      (with-html-output (*standard-output* nil)
       (:div :id "rtable"
        (loop for i in imgs and  a from 0 do 
-	(htm
+ 	(htm
 	 (:div :id "table"
 	 (:div :class "tablecell"
 	  (:div :class "t1"
@@ -119,23 +115,45 @@
 			   (first (nth a ind))) (:img :class "img" :src (first i))))
 	  (:div :class "t1"
 		(fmt (first (nth a desc)))))))) 
-       (:div :class "clear" "&nbsp;"))))))
+       (:div :class "clear" "&nbsp;")))
+     (with-html-output (*standard-output* nil)
+       (:p "No matches found.")))))
 
 (define-easy-handler (info :uri "/info")
     (index)
-  
-    (page-template
+  (page-template
 	(:title "Info")
       (:h3 :id "header" "Info")
       (display-image-and-info index))) 
 
+(define-easy-handler (download :uri "/download")
+    (index)
+    (page-template
+	(:title "Download")
+      (download-index index)
+      (redirect "/search")))
+
+(defun download-index (index)
+  "download get-iplayer Programme by index."
+  (gt:make-thread
+   (lambda () (run/s (iplayer-download-command index))
+	   (gt:make-thread (lambda ()
+			     (with-html-output
+				 (*standard-output* nil)
+			       (redirect "/search")))))))
+
 (defun display-image-and-info (index)
+  "show thumbnail and get-iplayer's long description."
   (let ((ind (load-thumbnail-for-index index)))
     (with-html-output (*standard-output* nil)
       (:img :src (first ind))
-      (:div :class "iplayerinfo"
-	    (:p (fmt (second ind)))))))
+      (:div :class "iplayerinfo "
+	    (:p (fmt (second ind))))
+      (:div :class "download"
+	    (:a :id "menu" :href (get-download-url index) "Download")))))
 
+(defun get-download-url (index)
+  (concatenate 'string "/download?index=" index))
 
 (defun load-thumbnail-for-index (index)
   "grep address for thumbnail size4 and description for entered index"

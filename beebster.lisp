@@ -3,22 +3,23 @@
 (in-package #:beebster)
 
 
-(defun highlights ()
-  "rss feed of the iplayer highlight page"
-  (drakma:http-request "http://feeds.bbc.co.uk/iplayer/highlights/tv"))
-
-
-
-(defun search-bbc (term)
-  "return html-string of search term"
-  (let* ((query (list (cons "q" term))))
-    (drakma:http-request "http://www.bbc.co.uk/iplayer/search"
-			 :parameters query)))
-
-(defparameter *selection* '())
 
 (defparameter *iplayer-command*
   "get-iplayer --nocopyright --limitmatches 50 --listformat \"<index> <pid> <thumbnail> <name> <episode>\"")
+
+
+(defparameter *categories*
+  '("popular" "highlights" "films" "nature"  "crime" "sitcom" "sport"))
+
+(defun search-categories (cat)
+  "use get-iplayer to list all programmes in a category."
+  (if cat
+      (butlast
+       (all-matches-as-strings "[0-9].*"
+			       (inferior-shell:run/s
+				(concatenate 'string *iplayer-command* " "
+					     "--category " cat))))
+      nil))
 
 (defun search-iplayer (term)
   "use get-iplayer to search for program."
@@ -53,7 +54,10 @@
 
 (defun iplayer-download-command (index)
   "concatenate index to download command"
-  (concatenate 'string "get-iplayer -g --nocopyright --output=~/Videos/" " " index " --flvstreamer /usr/bin/flvstreamer"))
+  (concatenate 'string "get_iplayer -g --nocopyright --output=~/Videos/" " " index " --flvstreamer /usr/bin/flvstreamer")) ;; the --flvstreamer part
+;; is only needed with some versions of rtmpdump, that do not work with
+;; iplayer's site. If you have a 'vanilla' version of rtmpdump installed
+;; you can delete this.
 
 (defun highlights-img ()
   "return the url of the highlights thumbnails."
@@ -72,7 +76,7 @@
 (defmacro page-template ((&key title) &body body)
   `(with-html-output-to-string (*standard-output* nil :prologue t)
      (:html
-      (:head
+       (:head
        (:title ,title)
        (:link :type "text/css" :rel "stylesheet"
 	      :href "/first.css "))
@@ -84,9 +88,12 @@
     ((searchterm :parameter-type 'string))
   (page-template
       (:title "iplayer search")
-    (htm (:a :class "ms" :href "/highlights"  "highlights")
-	 (:a :class "ms" :href "/sitcoms" "sitcom"))
+    (loop for i in *categories* do
+	 (htm (:a :class "ms" :href (concatenate 'string "/" i) (str i))))
+    (:br)
+    (:br)
     (:h3 :id "header" "Search")
+    (:br)
     (:p (:form
 	 :method :post
 	 (:table :border 0 :cellpadding 2
@@ -97,6 +104,7 @@
 	       (:td (:input :type :submit :value "Submit" ))))))
     (display-results (search-iplayer searchterm))))
 
+ 
 (defun display-results (list)
   "loop through list to display thumbnail and title
    in a table with 3 columns."
@@ -112,12 +120,31 @@
 	 (:div :class "tablecell"
 	  (:div :class "t1"
 		(:a :href (get-url
-			   (first (nth a ind))) (:img :class "img" :src (first i))))
+			   (first (nth a ind)))
+		    (:img :class "img" :src (first i))))
 	  (:div :class "t1"
 		(fmt (first (nth a desc)))))))) 
        (:div :class "clear" "&nbsp;")))
      (with-html-output (*standard-output* nil)
        (:p "No matches found.")))))
+
+
+(defmacro category-template (url cat header)
+  "macro for category links."
+  `(define-easy-handler (,cat :uri ,url)
+       ()
+     (page-template
+	 (:title ,header)
+       (:h3 :id "header" ,header)
+       (display-results (search-categories ,header)))))
+
+(category-template "/popular" popular "Popular")
+(category-template "/films" films "Films")
+(category-template "/highlights" highlights "Highlights")
+(category-template "/crime" crime "Crime")
+(category-template "/nature" nature "Nature")
+(category-template "/sitcom" sitcom "Sitcoms")
+(category-template "/sport" sport "Sport")
 
 (define-easy-handler (info :uri "/info")
     (index)
@@ -135,24 +162,27 @@
 
 (defun download-index (index)
   "download get-iplayer Programme by index."
-  (gt:make-thread
-   (lambda () (run/s (iplayer-download-command index))
-	   (gt:make-thread (lambda ()
-			     (with-html-output
-				 (*standard-output* nil)
-			       (redirect "/search")))))))
+  (gt:with-green-thread
+   (run/s (iplayer-download-command index))
+   (gt:thread-yield)
+   (with-html-output
+       (*standard-output* nil)
+     (redirect "/search"))))
 
 (defun display-image-and-info (index)
   "show thumbnail and get-iplayer's long description."
   (let ((ind (load-thumbnail-for-index index)))
     (with-html-output (*standard-output* nil)
-      (:img :src (first ind))
+      (:div :class "infotitle"
+	    (:p (fmt (third ind))))
+      (:div :class "infothumb"
+	    (:img :src (first ind)))
       (:div :class "iplayerinfo "
 	    (:p (fmt (second ind))))
-      (:div :class "download"
-	    (:a :id "menu" :href (get-download-url index) "Download")))))
+      (:a :class "download" :href (get-download-url index) "Download"))))
 
 (defun get-download-url (index)
+  "return url address for entered programme"
   (concatenate 'string "/download?index=" index))
 
 (defun load-thumbnail-for-index (index)
@@ -163,7 +193,10 @@
 						 "thumbnail4.*" ind))))
 	  (first (all-matches-as-strings "[A-Z].*"
 					 (first (all-matches-as-strings
-						 "desc:.*" ind)))))))
+						 "desc:.*" ind))))
+	  (first (all-matches-as-strings "[A-Z].*"
+					 (first (all-matches-as-strings
+						 "title:.*" ind)))))))
 
 (defun get-url (index)
   "return /info url string concatenated with the index"
@@ -172,41 +205,6 @@
 (defun get-info (index)
   "return get-iplayer info command for given index"
   (concatenate 'string "get-iplayer -i" " " (prin1-to-string index)))
-
-(define-easy-handler (test-2 :uri "/highlights"
-			     :default-request-type :get)
-    ((state-variable :parameter-type 'string))
-  (page-template
-      (:title "Highlights")
-    (:h3 :id "header" "Highlights")
-    (:table :class "results" :border 0 :cellpadding 8
-     (loop for i from 0 to 6 by 3 do
-       (htm
-	(:tr :align "center"
-	  (loop for j to 2 do
-	   (htm
-	    (:td :class "img"
-	      (:img :src (image-by-number (+ i j)) :width 180 :height 140
-		       :title (title-by-number (+ i j))  ))
-	    (:td :class "t1"
-		 (fmt (title-by-number (+ i j)))))))))
-     (:tr :align "center"
-	  (:td :class "img"
-	       (:a :href "/search" (:img :src (image-by-number 9) :width 180 :height 140)
-		     :title (title-by-number 9) :onclick (push (image-by-number 9) *selection*) 
-		     ))
-	  (:td :class "t1"
-	       (fmt (title-by-number 9)))))))
-
-(defun highlights-img-capture ()
-  (mapcar #'(lambda (x) (all-matches-as-strings "[A-Z].*" x))
-	  (all-matches-as-strings "alt=&quot.*&quot" (highlights))))
-
-(defun image-by-number (n)
-  (first (nth n (highlights-img))))
-
-(defun title-by-number (n)
-  (first (nth n (highlights-img-capture))))
 
 
 

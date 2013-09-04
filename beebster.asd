@@ -14,7 +14,8 @@
 	       #:parenscript
 	       #:inferior-shell
 	       #:split-sequence
-	       #:fiveam)
+	       #:fiveam
+	       #:green-threads)
   :components ((:file "package")
                (:file "beebster")
 	       (:file "tests")))

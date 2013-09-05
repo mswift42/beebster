@@ -28,4 +28,9 @@
   (is (equal '("1") (get-index-from-search "1 1_hallo 2 3")))
   (is (equal '("012345") (get-index-from-search "012345 012345 012345"))))
 
+(test test-get-url
+  (is (equal "/info?index=666" (get-url "666"))))
+
+
+
 (run!)

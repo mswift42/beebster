@@ -3,7 +3,6 @@
 (in-package #:beebster)
 
 
-
 (defparameter *iplayer-command*
   "get-iplayer --nocopyright --limitmatches 50 --listformat \"<index> <pid> <thumbnail> <name> <episode>\"")
 
@@ -25,9 +24,10 @@
   "use get-iplayer to search for program."
   (if term
       (butlast
-       (all-matches-as-strings "[0-9].*"
-			       (inferior-shell:run/s
-				(concatenate 'string *iplayer-command* " " term))))
+       (all-matches-as-strings
+	"[0-9].*"
+	(inferior-shell:run/s
+	 (concatenate 'string *iplayer-command* " " term))))
       nil))
 
 (defun get-thumb-from-search (string)
@@ -42,15 +42,7 @@
   "return index from search-iplayer string."
   (all-matches-as-strings "^[0-9]*" string))
 
-(defun bbc-title (term)
-  "search for title in bbc-page."
-  (let ((document (chtml:parse (search-bbc term) (cxml-stp:make-builder))))
-    (stp:do-recursively (i document)
-      (when (and (typep i 'stp:element)
-		 (equal (stp:local-name i) "span")
-		 (equal (stp:attribute-value i "class") "title"))
-	(format t "~A:~%" (string-trim
-			   '(#\Newline #\Tab) (stp:string-value i)))))))
+
 
 (defun iplayer-download-command (index)
   "concatenate index to download command"
@@ -59,10 +51,10 @@
 ;; iplayer's site. If you have a 'vanilla' version of rtmpdump installed
 ;; you can delete this.
 
-(defun highlights-img ()
-  "return the url of the highlights thumbnails."
-  (mapcar #'(lambda (x) (all-matches-as-strings "h.*jpg" x))
-	  (all-matches-as-strings "img.*jpg" (highlights))))
+;; (defun highlights-img ()
+;;   "return the url of the highlights thumbnails."
+;;   (mapcar #'(lambda (x) (all-matches-as-strings "h.*jpg" x))
+;; 	  (all-matches-as-strings "img.*jpg" (highlights))))
 
 (push (create-static-file-dispatcher-and-handler
        "/first.css" "second.css") *dispatch-table*)
@@ -97,7 +89,7 @@
     (:p (:form
 	 :method :post
 	 (:table :border 0 :cellpadding 2
-	  (:tr (:td  :style "text-align:right;color:#e2e2e5" (str "Search"))
+ 	  (:tr (:td  :style "text-align:right;color:#e2e2e5" (str "Search"))
 	       (:td (:input :type :text :style "float:left"
 			    :name "searchterm"
 			    :value searchterm))
@@ -106,8 +98,8 @@
 
  
 (defun display-results (list)
-  "loop through list to display thumbnail and title
-   in a table with 3 columns."
+  "loop through list to display thumbnail ,title
+   and description in  2 columns."
   (let ((imgs (mapcar #'get-thumb-from-search list))
 	(desc (mapcar #'get-title-and-episode list))
 	(ind  (mapcar #'get-index-from-search list)))

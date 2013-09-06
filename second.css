@@ -57,6 +57,10 @@ div.t1{
     letter-spacing:0.14em;
     text-align:center;
 }
+div.info {
+    width:80px;
+    color:#e2e2e5;
+    }xo
 
 
 
@@ -78,7 +82,7 @@ div.tablecell {
     margin: 20px;
     }
 div.iplayerinfo {
-    height:700px;
+    
     width:400px;
     margin: 30px;
     text-align:center;
@@ -101,9 +105,12 @@ div.infothumb {
 .download {
     padding:10px;
     color:#202020;
-    float:right;
     background-color:#ff9800;
-    margin-right:140px;
+    margin-right:100px;
     font-size:1.3em;
+    clear:right;
+    margin-top:20px;
+    float:right;
+    
         }
     

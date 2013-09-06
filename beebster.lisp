@@ -1,4 +1,5 @@
- ;;;; beebster.lisp
+
+;;;; beebster.lisp
 
 (in-package #:beebster)
 
@@ -6,7 +7,7 @@
 (defparameter *iplayer-command*
   "get-iplayer --nocopyright --limitmatches 50 --listformat \"<index> <pid> <thumbnail> <name> <episode>\"")
 
-
+(setf *js-string-delimiter* #\")
 (defparameter *categories*
   '("popular" "highlights" "films" "nature"  "crime" "sitcom" "sport"))
 
@@ -152,14 +153,15 @@
       (download-index index)
       (redirect "/search")))
 
+
 (defun download-index (index)
   "download get-iplayer Programme by index."
-  (gt:with-green-thread
-   (run/s (iplayer-download-command index))
-   (gt:thread-yield)
-   (with-html-output
-       (*standard-output* nil)
-     (redirect "/search"))))
+  (bt:make-thread (lambda ()
+		    (run/s (iplayer-download-command index)))
+		  :name "download")
+  
+  (with-html-output (*standard-output* nil)
+    (redirect "/search")))
 
 (defun display-image-and-info (index)
   "show thumbnail and get-iplayer's long description."
@@ -171,7 +173,8 @@
 	    (:img :src (first ind)))
       (:div :class "iplayerinfo "
 	    (:p (fmt (second ind))))
-      (:a :class "download" :href (get-download-url index) "Download"))))
+      (:a :class "download" :href (get-download-url index) "Download")
+      (ps-inline (alert (third ind))))))
 
 (defun get-download-url (index)
   "return url address for entered programme"

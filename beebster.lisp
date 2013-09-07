@@ -1,18 +1,19 @@
-
+ 
 ;;;; beebster.lisp
 
 (in-package #:beebster)
 
-
+;; iplayer command that returns only the wanted categories in one line
+;; (get_iplayer --listformat "<index> <pid>") -> "1233 pn0232323"
 (defparameter *iplayer-command*
-  "get-iplayer --nocopyright --limitmatches 50 --listformat \"<index> <pid> <thumbnail> <name> <episode>\"")
+  "get_iplayer --nocopyright --limitmatches 50 --listformat \"<index> <pid> <thumbnail> <name> <episode>\"")
 
 (setf *js-string-delimiter* #\")
 (defparameter *categories*
   '("popular" "highlights" "films" "nature"  "crime" "sitcom" "sport"))
 
 (defun search-categories (cat)
-  "use get-iplayer to list all programmes in a category."
+  "use get_iplayer to list all programmes in a category."
   (if cat
       (butlast
        (all-matches-as-strings "[0-9].*"
@@ -22,7 +23,7 @@
       nil))
 
 (defun search-iplayer (term)
-  "use get-iplayer to search for program."
+  "use get_iplayer to search for program."
   (if term
       (butlast
        (all-matches-as-strings
@@ -43,8 +44,6 @@
   "return index from search-iplayer string."
   (all-matches-as-strings "^[0-9]*" string))
 
-
-
 (defun iplayer-download-command (index)
   "concatenate index to download command"
   (concatenate 'string "get_iplayer -g --nocopyright --output=~/Videos/" " " index " --flvstreamer /usr/bin/flvstreamer")) ;; the --flvstreamer part
@@ -52,19 +51,10 @@
 ;; iplayer's site. If you have a 'vanilla' version of rtmpdump installed
 ;; you can delete this.
 
-;; (defun highlights-img ()
-;;   "return the url of the highlights thumbnails."
-;;   (mapcar #'(lambda (x) (all-matches-as-strings "h.*jpg" x))
-;; 	  (all-matches-as-strings "img.*jpg" (highlights))))
-
+;; tell Hunchentoot which css file to use.
 (push (create-static-file-dispatcher-and-handler
        "/first.css" "second.css") *dispatch-table*)
 
-
-(defmacro iplayer-img (class source title alt)
-  `(with-html-output (*standard-output* nil)
-     (:img :class ,class :src ,source
-	   :title ,title :alt ,alt :width 150 :height 84)))
 
 (defmacro page-template ((&key title) &body body)
   `(with-html-output-to-string (*standard-output* nil :prologue t)
@@ -75,7 +65,7 @@
 	      :href "/first.css "))
       (:body ,@body))))
 
-
+;; Start Page; search for programmes or visit category links
 (define-easy-handler (iplayer-search :uri "/search"
 			     :default-request-type :both)
     ((searchterm :parameter-type 'string))
@@ -153,18 +143,30 @@
       (download-index index)
       (redirect "/search")))
 
+(defparameter *active-downloads* '())
+
+
+(defun test-thead ()
+  "get to grips with bt:threads"
+  (bt:make-thread (lambda () (sleep 30)
+			  :name "sleep")))
+
 
 (defun download-index (index)
-  "download get-iplayer Programme by index."
+  "download get_iplayer Programme by index."
   (bt:make-thread (lambda ()
 		    (run/s (iplayer-download-command index)))
-		  :name "download")
-  
-  (with-html-output (*standard-output* nil)
-    (redirect "/search")))
+		  :name index)
+
+(defun download-index (index)
+  "download get_iplayer programme by index, using
+   bt-threads."
+  (let ((thread-1 (bt:make-thread (lambda ()
+				    (run/s (iplayer-download-command index))))))
+    (push thread-1 *active-downloads*))))
 
 (defun display-image-and-info (index)
-  "show thumbnail and get-iplayer's long description."
+  "show thumbnail and get_iplayer's long description."
   (let ((ind (load-thumbnail-for-index index)))
     (with-html-output (*standard-output* nil)
       (:div :class "infotitle"
@@ -173,8 +175,8 @@
 	    (:img :src (first ind)))
       (:div :class "iplayerinfo "
 	    (:p (fmt (second ind))))
-      (:a :class "download" :href (get-download-url index) "Download")
-      (ps-inline (alert (third ind))))))
+      (:a :class "download" :href (get-download-url index) "Download"
+	  :onclick (ps (alert "download"))))))
 
 (defun get-download-url (index)
   "return url address for entered programme"
@@ -198,12 +200,9 @@
   (concatenate 'string "/info?index=" index ))
 
 (defun get-info (index)
-  "return get-iplayer info command for given index"
-  (concatenate 'string "get-iplayer -i" " " (prin1-to-string index)))
+  "return get_iplayer info command for given index"
+  (concatenate 'string "get_iplayer -i" " " (prin1-to-string index)))
 
 
 
-
-
-
-(fiveam:run!)
+(fiveam:run!) ;; Run tests from tests.lisp

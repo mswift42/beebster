@@ -142,8 +142,7 @@
 	(:title "Download")
       (with-html-output (*standard-output* nil)
 	(:p "Downloading: " (str index))
-	(:a :class "menu" :href (get-kill-url index) "Cancel"
-	    ))
+	(:a :class "menu" :href (get-kill-url index) "Cancel"))
       (download-index index)
       ;(redirect "/search")
       ))
@@ -157,7 +156,7 @@
       (kill-download (format nil "~A" index))
       (htm
        (:p "stopping download of "))
-      (sleep 2 )
+      (sleep 2  )
       (redirect "/search"))))
 
 (defparameter *active-downloads* '())

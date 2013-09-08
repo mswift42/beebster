@@ -39,14 +39,14 @@
 (defun get-title-and-episode (string)
    "return list of titles from search-iplayer string."
   (all-matches-as-strings "[A-Z].*" string))
-
+ 
 (defun get-index-from-search (string)
   "return index from search-iplayer string."
   (all-matches-as-strings "^[0-9]*" string))
 
 (defun iplayer-download-command (index)
   "concatenate index to download command"
-  (concatenate 'string "get_iplayer -g --nocopyright --output=~/Videos/" " " index " --flvstreamer /usr/bin/flvstreamer")) ;; the --flvstreamer part
+  (concatenate 'string "get_iplayer -g --nocopyright --output=\"~/Videos/\"" " " index " --flvstreamer /usr/bin/flvstreamer")) ;; the --flvstreamer part
 ;; is only needed with some versions of rtmpdump, that do not work with
 ;; iplayer's site. If you have a 'vanilla' version of rtmpdump installed
 ;; you can delete this.
@@ -140,30 +140,48 @@
     (index)
     (page-template
 	(:title "Download")
+      (with-html-output (*standard-output* nil)
+	(:p "Downloading: " (str index))
+	(:a :class "menu" :href (get-kill-url index) "Cancel"
+	    ))
       (download-index index)
-      (redirect "/search")))
+      ;(redirect "/search")
+      ))
+
+(define-easy-handler (kd :uri "/kt")
+    (index)
+  (page-template
+      (:title "")
+    (with-html-output (*standard-output* nil)
+      (:p "Stopping download of : " (str index))
+      (kill-download (format nil "~A" index))
+      (htm
+       (:p "stopping download of "))
+      (sleep 2 )
+      (redirect "/search"))))
 
 (defparameter *active-downloads* '())
 
 
-(defun test-thead ()
+(defun test-thread ()
   "get to grips with bt:threads"
-  (bt:make-thread (lambda () (sleep 30)
-			  :name "sleep")))
+  (bt:make-thread (lambda () (sleep 30)) :name "sleep"))
 
+(defun kill-download (name)
+  "search list of all runnings threads. If thread name
+   is equal to 'name' kill thread."
+  (dolist (i (bt:all-threads))
+    (if (equal name (bt:thread-name i))
+	(bt:destroy-thread i))))
 
-(defun download-index (index)
-  "download get_iplayer Programme by index."
-  (bt:make-thread (lambda ()
-		    (run/s (iplayer-download-command index)))
-		  :name index)
 
 (defun download-index (index)
   "download get_iplayer programme by index, using
    bt-threads."
   (let ((thread-1 (bt:make-thread (lambda ()
-				    (run/s (iplayer-download-command index))))))
-    (push thread-1 *active-downloads*))))
+				    (run/s (iplayer-download-command index)))
+				  :name (format nil "~A" index))))
+    (push thread-1 *active-downloads*)))
 
 (defun display-image-and-info (index)
   "show thumbnail and get_iplayer's long description."
@@ -176,11 +194,15 @@
       (:div :class "iplayerinfo "
 	    (:p (fmt (second ind))))
       (:a :class "download" :href (get-download-url index) "Download"
-	  :onclick (ps (alert "download"))))))
+	  (:p :onclick (ps (alert (escape-string "download")) "click me"))))))
 
 (defun get-download-url (index)
   "return url address for entered programme"
   (concatenate 'string "/download?index=" index))
+
+(defun get-kill-url (index)
+  "return string with /kt concatanated with index"
+  (concatenate 'string "/kt?index=" index))
 
 (defun load-thumbnail-for-index (index)
   "grep address for thumbnail size4 and description for entered index"

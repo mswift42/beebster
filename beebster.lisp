@@ -1,4 +1,3 @@
- 
 ;;;; beebster.lisp
 
 (in-package #:beebster)
@@ -31,14 +30,17 @@
 	(inferior-shell:run/s
 	 (concatenate 'string *iplayer-command* " " term))))
       nil))
-
 (defun get-thumb-from-search (string)
   "return thumbnail address in search-iplayer string."
   (all-matches-as-strings "http.*jpg" string))
 
 (defun get-title-and-episode (string)
    "return list of titles from search-iplayer string."
-  (all-matches-as-strings "[A-Z].*" string))
+   (all-matches-as-strings "[A-Z0-9].*"
+			   (regex-replace "\\-"
+					  (first (all-matches-as-strings
+						  "jpg.*" string))
+					  "")))
  
 (defun get-index-from-search (string)
   "return index from search-iplayer string."
@@ -86,7 +88,6 @@
 			    :value searchterm))
 	       (:td (:input :type :submit :value "Submit" ))))))
     (display-results (search-iplayer searchterm))))
-
  
 (defun display-results (list)
   "loop through list to display thumbnail ,title
@@ -110,7 +111,6 @@
        (:div :class "clear" "&nbsp;")))
      (with-html-output (*standard-output* nil)
        (:p "No matches found.")))))
-
 
 (defmacro category-template (url cat header)
   "macro for category links."
@@ -161,7 +161,6 @@
 
 (defparameter *active-downloads* '())
 
-
 (defun test-thread ()
   "get to grips with bt:threads"
   (bt:make-thread (lambda () (sleep 30)) :name "sleep"))
@@ -192,8 +191,7 @@
 	    (:img :src (first ind)))
       (:div :class "iplayerinfo "
 	    (:p (fmt (second ind))))
-      (:a :class "download" :href (get-download-url index) "Download"
-	  (:p :onclick (ps (alert (escape-string "download")) "click me"))))))
+      (:a :class "download" :href (get-download-url index) "Download"))))
 
 (defun get-download-url (index)
   "return url address for entered programme"
@@ -212,7 +210,7 @@
 	  (first (all-matches-as-strings "[A-Z].*"
 					 (first (all-matches-as-strings
 						 "desc:.*" ind))))
-	  (first (all-matches-as-strings "[A-Z].*"
+	  (first (all-matches-as-strings "[A-Z0-9].*"
 					 (first (all-matches-as-strings
 						 "title:.*" ind)))))))
 
@@ -223,7 +221,6 @@
 (defun get-info (index)
   "return get_iplayer info command for given index"
   (concatenate 'string "get_iplayer -i" " " (prin1-to-string index)))
-
 
 
 (fiveam:run!) ;; Run tests from tests.lisp

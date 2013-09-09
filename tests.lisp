@@ -77,7 +77,11 @@ INFO: 1 Matching Programmes
 
 (test test-title-and-episode
  (is (equal '("Big School Episode 2")
-	    (get-title-and-episode (first *test-list-1*)))))
+	    (get-title-and-episode (first *test-list-1*))))
+ (is (equal '("360 ")
+	    (get-title-and-episode "4 b01sm37h http://www.bbc.co.uk/iplayer/images/episode/b01sm37h_150_84.jpg 360 -" ))))
+
+
 
 (test test-get-info
   (is (equal "get_iplayer -i 703" (get-info 703))))

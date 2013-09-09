@@ -48,7 +48,7 @@
 
 (defun iplayer-download-command (index)
   "concatenate index to download command"
-  (concatenate 'string "get_iplayer -g --nocopyright --output=\"~/Videos/\"" " " index " --flvstreamer /usr/bin/flvstreamer")) ;; the --flvstreamer part
+  (concatenate 'string "get_iplayer -g --nocopyright --output=\"/home/martin/Videos\"" " " index " --flvstreamer /usr/bin/flvstreamer")) ;; the --flvstreamer part
 ;; is only needed with some versions of rtmpdump, that do not work with
 ;; iplayer's site. If you have a 'vanilla' version of rtmpdump installed
 ;; you can delete this.

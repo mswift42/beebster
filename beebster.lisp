@@ -48,7 +48,7 @@
 
 (defun iplayer-download-command (index)
   "concatenate index to download command"
-  (concatenate 'string "get_iplayer -g --nocopyright --output=\"/home/martin/Videos\"" " " index " --flvstreamer /usr/bin/flvstreamer")) ;; the --flvstreamer part
+  (concatenate 'string "get_iplayer -g --nocopyright --output=\"$HOME/Videos\"" " " index " --flvstreamer /usr/bin/flvstreamer")) ;; the --flvstreamer part
 ;; is only needed with some versions of rtmpdump, that do not work with
 ;; iplayer's site. If you have a 'vanilla' version of rtmpdump installed
 ;; you can delete this.
@@ -122,7 +122,7 @@
        (display-results (search-categories ,header)))))
 
 (category-template "/popular" popular "Popular")
-(category-template "/films" films "Films")
+ (category-template "/films" films "Films")
 (category-template "/highlights" highlights "Highlights")
 (category-template "/crime" crime "Crime")
 (category-template "/nature" nature "Nature")
@@ -142,7 +142,7 @@
 	(:title "Download")
       (with-html-output (*standard-output* nil)
 	(:p "Downloading: " (str index))
-	(:a :class "menu" :href (get-kill-url index) "Cancel"))
+	(:a :class "ms" :href (get-kill-url index) "Cancel"))
       (download-index index)
       ;(redirect "/search")
       ))
@@ -154,6 +154,12 @@
     (with-html-output (*standard-output* nil)
       (:p "Stopping download of : " (str index))
       (kill-download (format nil "~A" index))
+      (kill-download index)
+      (kill-download (format nil "~A" index))
+      (dotimes (i 10) (kill-download (format nil "~A" index)))
+      (sleep 2)
+      (dotimes (i 10) (kill-download (format nil "~A" index)))
+      (dotimes (i 10) (kill-download index))
       (htm
        (:p "stopping download of "))
       (sleep 2  )

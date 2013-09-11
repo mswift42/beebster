@@ -7,29 +7,43 @@
 (defparameter *iplayer-command*
   "get_iplayer --nocopyright --limitmatches 50 --listformat \"<index> <pid> <thumbnail> <name> <episode>\"")
 
+(defparameter *delete-string*
+  "These programmes should be deleted:")
+
+(defun old-recordings-p (string)
+  "Does get-iplayer complain about recorded programmes > 30 days?"
+  (all-matches *delete-string* string))
+
 (setf *js-string-delimiter* #\")
 (defparameter *categories*
   '("popular" "highlights" "films" "nature"  "crime" "sitcom" "sport"))
 
+
 (defun search-categories (cat)
-  "use get_iplayer to list all programmes in a category."
-  (if cat
-      (butlast
-       (all-matches-as-strings "[0-9].*"
-			       (inferior-shell:run/s
-				(concatenate 'string *iplayer-command* " "
-					     "--category " cat))))
-      nil))
+  "use get_iplayer to list all-programmes in a category."
+  (if (null cat) nil
+      (let ((result (inferior-shell:run/s
+		     (concatenate 'string *iplayer-command* " "
+				  "--category " cat))))
+	(if (old-recordings-p result)
+	    (butlast
+	     (all-matches-as-strings "[0-9A-Z].*" result
+				     :start (first (old-recordings-p result))))
+	    (butlast
+	     (all-matches-as-strings "[0-9].*"
+				     result))))))
 
 (defun search-iplayer (term)
   "use get_iplayer to search for program."
-  (if term
-      (butlast
-       (all-matches-as-strings
-	"[0-9].*"
-	(inferior-shell:run/s
-	 (concatenate 'string *iplayer-command* " " term))))
-      nil))
+  (if (null term) nil
+      (let ((result (inferior-shell:run/s
+		     (concatenate 'string *iplayer-command* " " term))))
+	(if (old-recordings-p result)
+	    (butlast (all-matches-as-strings "[0-9A-Z].*" result
+					     :start (first (old-recordings-p result))))
+	    (butlast
+	     (all-matches-as-strings "[0-9].*"
+				     result))))))
 (defun get-thumb-from-search (string)
   "return thumbnail address in search-iplayer string."
   (all-matches-as-strings "http.*jpg" string))
@@ -62,7 +76,7 @@
   `(with-html-output-to-string (*standard-output* nil :prologue t)
      (:html
        (:head
-       (:title ,title)
+        (:title ,title)
        (:link :type "text/css" :rel "stylesheet"
 	      :href "/first.css "))
       (:body ,@body))))
@@ -89,28 +103,38 @@
 	       (:td (:input :type :submit :value "Submit" ))))))
     (display-results (search-iplayer searchterm))))
  
+
 (defun display-results (list)
-  "loop through list to display thumbnail ,title
-   and description in  2 columns."
-  (let ((imgs (mapcar #'get-thumb-from-search list))
-	(desc (mapcar #'get-title-and-episode list))
-	(ind  (mapcar #'get-index-from-search list)))
-    (if list
+  "check if search contaings iplayer's warning notice for 
+   expired programmes. If not, and if search is succesful
+   loop through list to display thumbnail, title
+   and description in 2 columns."
+  (cond
+    ((null list) nil)
+    ((all-matches *delete-string* (first list))
      (with-html-output (*standard-output* nil)
+       (:div :id "rtable"
+	(loop for i in (butlast list) do
+	 (htm
+	  (:div :class "delete"
+		(:p (str i))))))))
+    (t
+     (let ((imgs (mapcar #'get-thumb-from-search list))
+	   (desc (mapcar #'get-title-and-episode list))
+	   (ind  (mapcar #'get-index-from-search list)))
+    (with-html-output (*standard-output* nil)
       (:div :id "rtable"
-       (loop for i in imgs and  a from 0 do 
- 	(htm
-	 (:div :id "table"
-	 (:div :class "tablecell"
-	  (:div :class "t1"
-		(:a :href (get-url
-			   (first (nth a ind)))
-		    (:img :class "img" :src (first i))))
-	  (:div :class "t1"
-		(fmt (first (nth a desc)))))))) 
-       (:div :class "clear" "&nbsp;")))
-     (with-html-output (*standard-output* nil)
-       (:p "No matches found.")))))
+	    (loop for i in imgs and  a from 0 do 
+		 (htm
+		  (:div :id "table"
+			(:div :class "tablecell"
+			      (:div :class "t1"
+				    (:a :href (get-url
+					       (first (nth a ind)))
+					(:img :class "img" :src (first i))))
+			      (:div :class "t1"
+				    (fmt (first (nth a desc)))))))) 
+	    (:div :class "clear" "&nbsp;")))))))
 
 (defmacro category-template (url cat header)
   "macro for category links."
@@ -122,7 +146,7 @@
        (display-results (search-categories ,header)))))
 
 (category-template "/popular" popular "Popular")
- (category-template "/films" films "Films")
+(category-template "/films" films "Films")
 (category-template "/highlights" highlights "Highlights")
 (category-template "/crime" crime "Crime")
 (category-template "/nature" nature "Nature")
@@ -154,8 +178,6 @@
     (with-html-output (*standard-output* nil)
       (:p "Stopping download of : " (str index))
       (kill-download (format nil "~A" index))
-      (kill-download index)
-      (kill-download (format nil "~A" index))
       (dotimes (i 10) (kill-download (format nil "~A" index)))
       (sleep 2)
       (dotimes (i 10) (kill-download (format nil "~A" index)))
@@ -166,10 +188,6 @@
       (redirect "/search"))))
 
 (defparameter *active-downloads* '())
-
-(defun test-thread ()
-  "get to grips with bt:threads"
-  (bt:make-thread (lambda () (sleep 30)) :name "sleep"))
 
 (defun kill-download (name)
   "search list of all runnings threads. If thread name
@@ -195,9 +213,9 @@
 	    (:p (fmt (third ind))))
       (:div :class "infothumb"
 	    (:img :src (first ind)))
+      (:a :class "download" :href (get-download-url index) "Download")
       (:div :class "iplayerinfo "
-	    (:p (fmt (second ind))))
-      (:a :class "download" :href (get-download-url index) "Download"))))
+	    (:p (fmt (second ind)))))))
 
 (defun get-download-url (index)
   "return url address for entered programme"

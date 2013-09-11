@@ -89,9 +89,9 @@ div.iplayerinfo {
     clear:left;
     }
 div.infotitle {
-    text-align:center;
+    text-align:left;
     float:left;
-    margin-left:30px;
+    margin-left:120px;
     
     }
 div.infothumb {
@@ -113,4 +113,9 @@ div.infothumb {
     float:right;
     
         }
-    
+div.delete {
+    text-align:center;
+    font-size:1.4em;
+    clear:both;
+    margin-top:80px;
+    }

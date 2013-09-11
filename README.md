@@ -7,13 +7,13 @@ Still in early stages, however downloading and getting info for programmes works
 
 To try it out:
 
+Install [get-iplayer](https://github.com/dinkypumpkin/get_iplayer). 
+
 clone the repository, then start your lisp implementation and 
 ><pre><code>(load "/full/path/to/beebster.asd")</code></pre>
 ><pre><code>(ql:quickload "beebster")</code></pre>
 
-Load the file "beebster.lisp" into your implementation (in Emacs **C-c C-l**)
-
-change to the beebster package (in Emacs thats **C-c M-p** beebster)
+change to the beebster package (in Emacs thats **C-c M-p** beebster or <code>(in-package :beebster)</code> from a repl.)
 
 
 and start a Hunchentoot instance:

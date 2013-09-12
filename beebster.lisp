@@ -247,4 +247,22 @@
   (concatenate 'string "get_iplayer -i" " " (prin1-to-string index)))
 
 
+
+(defun wiki-film (film)
+  "return wikipedia url for entered film."
+  (concatenate 'string "http://en.wikipedia.org/wiki/" film "_(film)"))
+
+
+(defun show-wiki-film-info (film)
+  "return string with body of wikipedia search of entered film."
+  (let* ((str (drakma:http-request (wiki-film film)))
+	 (document (chtml:parse str (cxml-stp:make-builder))))
+    (stp:do-recursively (a document)
+      (when (and (typep a 'stp:element)
+		 (equal (stp:local-name a) "div")
+		 (equal (stp:attribute-value a "id") "bodyContent"))
+	(format t "~A:~%"
+		(stp:string-value a))))))
+
+
 (fiveam:run!) ;; Run tests from tests.lisp

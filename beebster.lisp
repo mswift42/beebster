@@ -111,7 +111,9 @@
    loop through list to display thumbnail, title
    and description in 2 columns."
   (cond
-    ((null list) nil)
+    ((null list)
+     (with-html-output (*standard-output* nil)
+       (:p "No matches found.")))
     ((all-matches *delete-string* (first list))
      (with-html-output (*standard-output* nil)
        (:div :id "rtable"

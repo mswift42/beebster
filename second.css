@@ -56,6 +56,7 @@ div.t1{
     color:#ff9800;
     letter-spacing:0.14em;
     text-align:center;
+    clear:left;
 }
 div.info {
     width:80px;
@@ -91,7 +92,7 @@ div.iplayerinfo {
 div.infotitle {
     text-align:left;
     float:left;
-    margin-left:120px;
+    margin-left:50px;
     
     }
 div.infothumb {

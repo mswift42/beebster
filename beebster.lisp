@@ -16,7 +16,8 @@
 
 (setf *js-string-delimiter* #\")
 (defparameter *categories*
-  '("popular" "highlights" "films" "nature"  "crime" "sitcom" "sport"))
+  '("search" "popular" "highlights" "films" "nature"  "crime" "sitcom" "sport"))
+
 
 
 (defun search-categories (cat)
@@ -123,6 +124,8 @@
 	   (desc (mapcar #'get-title-and-episode list))
 	   (ind  (mapcar #'get-index-from-search list)))
     (with-html-output (*standard-output* nil)
+      
+      ;(:h3 :id "header" "Info")
       (:div :id "rtable"
 	    (loop for i in imgs and  a from 0 do 
 		 (htm
@@ -142,6 +145,8 @@
        ()
      (page-template
 	 (:title ,header)
+       (loop for i in *categories* do
+	 (htm (:a :class "ms" :href (concatenate 'string "/" i) (str i))))
        (:h3 :id "header" ,header)
        (display-results (search-categories ,header)))))
 
@@ -157,6 +162,9 @@
     (index)
   (page-template
 	(:title "Info")
+      
+      (loop for i in *categories* do
+	 (htm (:a :class "ms" :href (concatenate 'string "/" i) (str i))))
       (:h3 :id "header" "Info")
       (display-image-and-info index))) 
 
@@ -209,6 +217,7 @@
   "show thumbnail and get_iplayer's long description."
   (let ((ind (load-thumbnail-for-index index)))
     (with-html-output (*standard-output* nil)
+      
       (:div :class "infotitle"
 	    (:p (fmt (third ind))))
       (:div :class "infothumb"
@@ -246,16 +255,18 @@
   "return get_iplayer info command for given index"
   (concatenate 'string "get_iplayer -i" " " (prin1-to-string index)))
 
-
-
 (defun wiki-film (film)
-  "return wikipedia url for entered film."
+  "return wikipedia url for unique search titles."
+  (concatenate 'string "http://en.wikipedia.org/wiki/" film))
+
+(defun wiki-film-disamb (film)
+  "return wikipedia url for disambigious titles of entered film."
   (concatenate 'string "http://en.wikipedia.org/wiki/" film "_(film)"))
 
 
-(defun show-wiki-film-info (film)
+(defun show-wiki-film-info (url)
   "return string with body of wikipedia search of entered film."
-  (let* ((str (drakma:http-request (wiki-film film)))
+  (let* ((str (drakma:http-request url))
 	 (document (chtml:parse str (cxml-stp:make-builder))))
     (stp:do-recursively (a document)
       (when (and (typep a 'stp:element)
@@ -264,5 +275,11 @@
 	(format t "~A:~%"
 		(stp:string-value a))))))
 
+;; Assigning a parameter to hunchentoot instance to facilitate
+;; stopping the server.
+(defparameter *web-server*
+  (setf *web-server* (make-instance 'easy-acceptor :port 4242)))
 
 (fiveam:run!) ;; Run tests from tests.lisp
+
+

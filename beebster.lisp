@@ -163,10 +163,9 @@
 (define-easy-handler (info :uri "/info")
     (index)
   (page-template
-	(:title "Info")
-      
-      (loop for i in *categories* do
-	 (htm (:a :class "ms" :href (concatenate 'string "/" i) (str i))))
+   (:title "Info")
+   (loop for i in *categories* do
+	(htm (:a :class "ms" :href (concatenate 'string "/" i) (str i))))
       (:h3 :id "header" "Info")
       (display-image-and-info index))) 
 
@@ -215,18 +214,21 @@
 				  :name (format nil "~A" index))))
     (push thread-1 *active-downloads*)))
 
+
+
 (defun display-image-and-info (index)
-  "show thumbnail and get_iplayer's long description."
-  (let ((ind (load-thumbnail-for-index index)))
+  "for given index display title, long description,
+   thumbnail and download-link."
+  (destructuring-bind (thumb desc title)
+      (load-thumbnail-for-index index)
     (with-html-output (*standard-output* nil)
-      
       (:div :class "infotitle"
-	    (:p (fmt (third ind))))
+	    (:p (fmt title)))
       (:div :class "infothumb"
-	    (:img :src (first ind)))
+	    (:img :src thumb))
       (:a :class "download" :href (get-download-url index) "Download")
-      (:div :class "iplayerinfo "
-	    (:p (fmt (second ind)))))))
+      (:div :class "iplayerinfo"
+	    (:p (fmt desc))))))
 
 (defun get-download-url (index)
   "return url address for entered programme"

@@ -9,13 +9,9 @@
                #:cl-who
                #:cl-ppcre
 	       #:drakma
-	       #:cxml-stp
-	       #:closure-html
-	       #:parenscript
 	       #:inferior-shell
 	       #:split-sequence
-	       #:fiveam
-	       #:green-threads)
+	       #:fiveam)
   :components ((:file "package")
                (:file "beebster")
 	       (:file "tests")))

@@ -257,25 +257,6 @@
   "return get_iplayer info command for given index"
   (concatenate 'string "get_iplayer -i" " " (prin1-to-string index)))
 
-(defun wiki-film (film)
-  "return wikipedia url for unique search titles."
-  (concatenate 'string "http://en.wikipedia.org/wiki/" film))
-
-(defun wiki-film-disamb (film)
-  "return wikipedia url for disambigious titles of entered film."
-  (concatenate 'string "http://en.wikipedia.org/wiki/" film "_(film)"))
-
-
-(defun show-wiki-film-info (url)
-  "return string with body of wikipedia search of entered film."
-  (let* ((str (drakma:http-request url))
-	 (document (chtml:parse str (cxml-stp:make-builder))))
-    (stp:do-recursively (a document)
-      (when (and (typep a 'stp:element)
-		 (equal (stp:local-name a) "div")
-		 (equal (stp:attribute-value a "id") "bodyContent"))
-	(format t "~A:~%"
-		(stp:string-value a))))))
 
 ;; Assigning a parameter to hunchentoot instance to facilitate
 ;; stopping the server.

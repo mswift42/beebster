@@ -16,7 +16,8 @@
 
 (setf *js-string-delimiter* #\")
 (defparameter *categories*
-  '("search" "popular" "highlights" "films" "nature"  "crime" "sitcom" "sport"))
+  '("search" "popular" "highlights" "films" "nature"
+    "crime" "sitcom" "sport" "thriller"))
 
 
 
@@ -108,8 +109,8 @@
 (defun display-results (list)
   "check if search contaings iplayer's warning notice for 
    expired programmes. If not, and if search is succesful
-   loop through list to display thumbnail, title
-   and description in 2 columns."
+   loop through list to display thumbnail and title
+   in 2 columns."
   (cond
     ((null list)
      (with-html-output (*standard-output* nil)
@@ -159,6 +160,7 @@
 (category-template "/nature" nature "Nature")
 (category-template "/sitcom" sitcom "Sitcoms")
 (category-template "/sport" sport "Sport")
+(category-template "/thriller" sport "Thriller")
 
 (define-easy-handler (info :uri "/info")
     (index)
@@ -215,7 +217,6 @@
     (push thread-1 *active-downloads*)))
 
 
-
 (defun display-image-and-info (index)
   "for given index display title, long description,
    thumbnail and download-link."
@@ -239,7 +240,7 @@
   (concatenate 'string "/kt?index=" index))
 
 (defun load-thumbnail-for-index (index)
-  "grep address for thumbnail size4 and description for entered index"
+  "grep url for thumbnail-size4,title and description for entered index"
   (let ((ind (run/s (get-info index))))
     (list (first (all-matches-as-strings "htt.*"
 					 (first (all-matches-as-strings

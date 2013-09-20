@@ -14,18 +14,19 @@
   "Does get-iplayer complain about recorded programmes > 30 days?"
   (all-matches *delete-string* string))
 
-(setf *js-string-delimiter* #\")
+
 (defparameter *categories*
   '("search" "popular" "highlights" "films" "nature"
     "crime" "sitcom" "sport" "thriller"))
 
-
+(defmacro join (string &rest args)
+  `(concatenate 'string ,string ,@args))
 
 (defun search-categories (cat)
   "use get_iplayer to list all-programmes in a category."
   (if (null cat) nil
       (let ((result (inferior-shell:run/s
-		     (concatenate 'string *iplayer-command* " "
+		     (join *iplayer-command* " "
 				  "--category " cat))))
 	(if (old-recordings-p result)
 	    (butlast
@@ -39,7 +40,7 @@
   "use get_iplayer to search for program."
   (if (null term) nil
       (let ((result (inferior-shell:run/s
-		     (concatenate 'string *iplayer-command* " " term))))
+		     (join *iplayer-command* " " term))))
 	(if (old-recordings-p result)
 	    (butlast (all-matches-as-strings "[0-9A-Z].*" result
 					     :start (first (old-recordings-p result))))
@@ -64,7 +65,7 @@
 
 (defun iplayer-download-command (index)
   "concatenate index to download command"
-  (concatenate 'string "get_iplayer -g --nocopyright --output=\"$HOME/Videos\"" " " index " --flvstreamer /usr/bin/flvstreamer")) ;; the --flvstreamer part
+  (join "get_iplayer -g --nocopyright --output=\"$HOME/Videos\"" " " index " --flvstreamer /usr/bin/flvstreamer")) ;; the --flvstreamer part
 ;; is only needed with some versions of rtmpdump, that do not work with
 ;; iplayer's site. If you have a 'vanilla' version of rtmpdump installed
 ;; you can delete this.
@@ -90,7 +91,7 @@
   (page-template
       (:title "iplayer search")
     (loop for i in *categories* do
-	 (htm (:a :class "ms" :href (concatenate 'string "/" i) (str i))))
+	 (htm (:a :class "ms" :href (join "/" i) (str i))))
     (:br)
     (:br)
     (:h3 :id "header" "Search")
@@ -101,8 +102,7 @@
  	  (:tr (:td  :style "text-align:right;color:#e2e2e5" (str "Search"))
 	       (:td (:input :type :text :style "float:left"
 			    :name "searchterm"
-			    :value searchterm))
-	       (:td (:input :type :submit :value "Submit" ))))))
+			    :value searchterm))))))
     (display-results (search-iplayer searchterm))))
  
 
@@ -149,7 +149,7 @@
      (page-template
 	 (:title ,header)
        (loop for i in *categories* do
-	 (htm (:a :class "ms" :href (concatenate 'string "/" i) (str i))))
+	 (htm (:a :class "ms" :href (join "/" i) (str i))))
        (:h3 :id "header" ,header)
        (display-results (search-categories ,header)))))
 
@@ -160,14 +160,14 @@
 (category-template "/nature" nature "Nature")
 (category-template "/sitcom" sitcom "Sitcoms")
 (category-template "/sport" sport "Sport")
-(category-template "/thriller" sport "Thriller")
+(category-template "/thriller" thriller "Thriller")
 
 (define-easy-handler (info :uri "/info")
     (index)
   (page-template
    (:title "Info")
    (loop for i in *categories* do
-	(htm (:a :class "ms" :href (concatenate 'string "/" i) (str i))))
+	(htm (:a :class "ms" :href (join "/" i) (str i))))
       (:h3 :id "header" "Info")
       (display-image-and-info index))) 
 
@@ -233,11 +233,11 @@
 
 (defun get-download-url (index)
   "return url address for entered programme"
-  (concatenate 'string "/download?index=" index))
+  (join "/download?index=" index))
 
 (defun get-kill-url (index)
   "return string with /kt concatanated with index"
-  (concatenate 'string "/kt?index=" index))
+  (join "/kt?index=" index))
 
 (defun load-thumbnail-for-index (index)
   "grep url for thumbnail-size4,title and description for entered index"
@@ -254,11 +254,11 @@
 
 (defun get-url (index)
   "return /info url string concatenated with the index"
-  (concatenate 'string "/info?index=" index ))
+  (join "/info?index=" index ))
 
 (defun get-info (index)
   "return get_iplayer info command for given index"
-  (concatenate 'string "get_iplayer -i" " " (prin1-to-string index)))
+  (join "get_iplayer -i" " " (prin1-to-string index)))
 
 
 ;; Assigning a parameter to hunchentoot instance to facilitate

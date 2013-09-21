@@ -220,7 +220,7 @@
 (defun display-image-and-info (index)
   "for given index display title, long description,
    thumbnail and download-link."
-  (destructuring-bind (thumb desc title)
+  (destructuring-bind (thumb desc title modes)
       (load-thumbnail-for-index index)
     (with-html-output (*standard-output* nil)
       (:div :class "infotitle"
@@ -229,7 +229,8 @@
 	    (:img :src thumb))
       (:a :class "download" :href (get-download-url index) "Download")
       (:div :class "iplayerinfo"
-	    (:p (fmt desc))))))
+	    (:p (fmt desc))))
+    ))
 
 (defun get-download-url (index)
   "return url address for entered programme"
@@ -250,7 +251,9 @@
 						 "desc:.*" ind))))
 	  (first (all-matches-as-strings "[A-Z0-9].*"
 					 (first (all-matches-as-strings
-						 "title:.*" ind)))))))
+						 "title:.*" ind))))
+	  (download-modes (first
+			   (all-matches-as-strings "modesizes:.*" ind))))))
 
 (defun get-url (index)
   "return /info url string concatenated with the index"
@@ -260,11 +263,22 @@
   "return get_iplayer info command for given index"
   (join "get_iplayer -i" " " (prin1-to-string index)))
 
+(defun download-modes (string)
+  "build list of possible download-modes for a given index."
+  (append (all-matches-as-strings "flashhd1=[0-9]*" string)
+	  (all-matches-as-strings "flashvhigh1=[0-9]*" string)
+	  (all-matches-as-strings "flashhigh1=[0-9]*" string)
+	  (all-matches-as-strings "flashstd1=[0-9]*" string)
+	  (all-matches-as-strings "flashlow1=[0-9]*" string)))
+
 
 ;; Assigning a parameter to hunchentoot instance to facilitate
 ;; stopping the server.
 (defparameter *web-server*
   (setf *web-server* (make-instance 'easy-acceptor :port 4242)))
+
+(defun main ()
+  (start *web-server*))
 
 (fiveam:run!) ;; Run tests from tests.lisp
 

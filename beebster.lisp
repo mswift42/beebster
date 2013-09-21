@@ -220,7 +220,7 @@
 (defun display-image-and-info (index)
   "for given index display title, long description,
    thumbnail and download-link."
-  (destructuring-bind (thumb desc title modes)
+  (destructuring-bind (thumb desc title)
       (load-thumbnail-for-index index)
     (with-html-output (*standard-output* nil)
       (:div :class "infotitle"
@@ -251,9 +251,7 @@
 						 "desc:.*" ind))))
 	  (first (all-matches-as-strings "[A-Z0-9].*"
 					 (first (all-matches-as-strings
-						 "title:.*" ind))))
-	  (download-modes (first
-			   (all-matches-as-strings "modesizes:.*" ind))))))
+						 "title:.*" ind)))))))
 
 (defun get-url (index)
   "return /info url string concatenated with the index"
@@ -267,15 +265,26 @@
   "build list of possible download-modes for a given index."
   (append (all-matches-as-strings "flashhd1=[0-9]*" string)
 	  (all-matches-as-strings "flashvhigh1=[0-9]*" string)
-	  (all-matches-as-strings "flashhigh1=[0-9]*" string)
-	  (all-matches-as-strings "flashstd1=[0-9]*" string)
-	  (all-matches-as-strings "flashlow1=[0-9]*" string)))
+	  (all-matches-as-strings "flashhigh1=[0-9]*" string)))
 
 
 ;; Assigning a parameter to hunchentoot instance to facilitate
 ;; stopping the server.
 (defparameter *web-server*
   (setf *web-server* (make-instance 'easy-acceptor :port 4242)))
+
+;; testing selection box.
+(define-easy-handler (test-modes :uri "/test-modes"
+				 :default-request-type :both)
+    ((quality :parameter-type 'string))
+  (page-template
+      (:title "test-modes")
+    (:div (:select :name "modes"
+		   (loop for i in '("a" "b" "c")
+			 do (htm
+			     (:option :value i
+				      :selected (eq i quality)
+				      (str i))))))))
 
 (defun main ()
   (start *web-server*))

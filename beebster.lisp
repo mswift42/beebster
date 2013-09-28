@@ -20,6 +20,7 @@
     "crime" "sitcom" "sport" "thriller"))
 
 (defmacro join (string &rest args)
+  "concatenate strings."
   `(concatenate 'string ,string ,@args))
 
 (defun search-categories (cat)
@@ -229,8 +230,7 @@
 	    (:img :src thumb))
       (:a :class "download" :href (get-download-url index) "Download")
       (:div :class "iplayerinfo"
-	    (:p (fmt desc))))
-    ))
+	    (:p (fmt desc))))))
 
 (defun get-download-url (index)
   "return url address for entered programme"
@@ -280,13 +280,19 @@
   (page-template
       (:title "test-modes")
     (:div (:select :name "modes"
-		   (loop for i in '("a" "b" "c")
+		   (loop for i in '(2 3 4)
 			 do (htm
-			     (:option :value i
+			     (:option :value quality
 				      :selected (eq i quality)
-				      (str i))))))))
+				      (str i))))))
+    (:p (str quality))))
+
+(defparameter *refresh*
+  "get-iplayer --refresh")
 
 (defun main ()
+  "refresh get-iplayer index and start hunchentoot"
+  (bt:make-thread (lambda () (run/s *refresh*)))
   (start *web-server*))
 
 (fiveam:run!) ;; Run tests from tests.lisp

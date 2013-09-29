@@ -186,24 +186,20 @@
       (:title "")
     (with-html-output (*standard-output* nil)
       (:p "Stopping download of : " (str index))
-      (kill-download (format nil "~A" index))
-      (dotimes (i 10) (kill-download (format nil "~A" index)))
+      (kill-download *active-downloads*)
       (sleep 2)
-      (dotimes (i 10) (kill-download (format nil "~A" index)))
-      (dotimes (i 10) (kill-download index))
+      (dotimes (i 3) (kill-download *active-downloads*))
       (htm
        (:p "stopping download of "))
       (sleep 2  )
       (redirect "/search"))))
 
-(defparameter *active-downloads* '())
+(defparameter *active-downloads* nil)
 
 (defun kill-download (name)
   "search list of all runnings threads. If thread name
    is equal to 'name' kill thread."
-  (dolist (i (bt:all-threads))
-    (if (equal name (bt:thread-name i))
-	(bt:destroy-thread i))))
+  (bt:destroy-thread name))
 
 
 (defun download-index (index)
@@ -212,7 +208,7 @@
   (let ((thread-1 (bt:make-thread (lambda ()
 				    (run/s (iplayer-download-command index)))
 				  :name (format nil "~A" index))))
-    (push thread-1 *active-downloads*)))
+    (setf  *active-downloads* thread-1)))
 
 
 (defun display-image-and-info (index)
@@ -262,7 +258,8 @@
   "build list of possible download-modes for a given index."
   (append (all-matches-as-strings "flashhd1=[0-9]*" string)
 	  (all-matches-as-strings "flashvhigh1=[0-9]*" string)
-	  (all-matches-as-strings "flashhigh1=[0-9]*" string)))
+	  (all-matches-as-strings "flashhigh1=[0-9]*" string)
+	  (all-matches-as-strings "flashlow1=[0-9]*" string)))
 
 
 ;; Assigning a parameter to hunchentoot instance to facilitate
@@ -270,19 +267,6 @@
 (defparameter *web-server*
   (setf *web-server* (make-instance 'easy-acceptor :port 4242)))
 
-;; testing selection box.
-(define-easy-handler (test-modes :uri "/test-modes"
-				 :default-request-type :both)
-    ((quality :parameter-type 'string))
-  (page-template
-      (:title "test-modes")
-    (:div (:select :name "modes"
-		   (loop for i in '(2 3 4)
-			 do (htm
-			     (:option :value quality
-				      :selected (eq i quality)
-				      (str i))))))
-    (:p (str quality))))
 
 (defparameter *refresh*
   "get-iplayer --refresh")
@@ -292,6 +276,7 @@
   (bt:make-thread (lambda () (run/s *refresh*)))
   (start *web-server*))
 
-(fiveam:run!) ;; Run tests from tests.lisp
+
+
 
 

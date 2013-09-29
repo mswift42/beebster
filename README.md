@@ -22,7 +22,11 @@ and start a Hunchentoot instance:
 
 Now open page localhost:4242/search with a webbrowser.
 
+
 ###Download of programmes will only work within the UK.
+
+Screenshots
+-----------
 
 
 

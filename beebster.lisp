@@ -176,9 +176,7 @@
       (with-html-output (*standard-output* nil)
 	(:p "Downloading: " (str index))
 	(:a :class "ms" :href (get-kill-url index) "Cancel"))
-      (download-index index)
-      ;(redirect "/search")
-      ))
+      (download-index index)))
 
 (define-easy-handler (kd :uri "/kt")
     (index)

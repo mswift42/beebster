@@ -3,9 +3,10 @@ beebster
 
 Webgui for Get-Iplayer.
 
-Still in early stages, however downloading and getting info for programmes works.
+
 
 To try it out:
+-------------
 
 Install [get-iplayer](https://github.com/dinkypumpkin/get_iplayer). 
 
@@ -17,9 +18,11 @@ change to the beebster package (in Emacs thats **C-c M-p** beebster or <code>(in
 
 
 and start a Hunchentoot instance:
-><pre><code>(start (make-instance 'easy-acceptor :port 4242))</code></pre>
+><pre><code>(main)</code></pre>
 
 Now open page localhost:4242/search with a webbrowser.
+
+###Download of programmes will only work within the UK.
 
 
 

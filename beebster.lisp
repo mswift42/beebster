@@ -106,7 +106,6 @@
 			    :value searchterm))))))
     (display-results (search-iplayer searchterm))))
  
-
 (defun display-results (list)
   "check if search contaings iplayer's warning notice for 
    expired programmes. If not, and if search is succesful
@@ -128,8 +127,6 @@
 	   (desc (mapcar #'get-title-and-episode list))
 	   (ind  (mapcar #'get-index-from-search list)))
     (with-html-output (*standard-output* nil)
-      
-      ;(:h3 :id "header" "Info")
       (:div :id "rtable"
 	    (loop for i in imgs and  a from 0 do 
 		 (htm

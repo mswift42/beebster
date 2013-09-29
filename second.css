@@ -20,7 +20,7 @@
 .cats {
     float:left
     }
-/*} */
+
 p {
     font-size:large;
     color:#e2e2e5;
@@ -30,19 +30,13 @@ body {
     background-color:#202020;
 
 }
-/* .img { */
-/*     width:150px; */
-/*     height:84px; */
-/*     padding:30px; */
-    
-    
-    
-/* } */
+
 .t1 {
     width:100px;
     color:#e2e2e5;
     line-height:1.4em;
     text-align:center;
+    word-break:break-all;
     
 }
 div.t1{
@@ -59,9 +53,9 @@ div.t1{
     clear:left;
 }
 div.info {
-    width:80px;
+    width:50em;
     color:#e2e2e5;
-    }xo
+    }
 
 
 

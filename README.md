@@ -36,3 +36,9 @@ Screenshots
 
 ![Info](https://github.com/mswift42/beebster/raw/master/EpisodeInfo.png)
 
+
+##TODO
+
+* Add wikipedia-info for programmes.
+* show available download-modes.
+

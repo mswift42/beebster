@@ -7,6 +7,10 @@
 (defparameter *iplayer-command*
   "get_iplayer --nocopyright --limitmatches 50 --listformat \"<index> <pid> <thumbnail> <name> <episode>\"")
 
+;; All programmes which have been downloaded and are older than 30
+;; days have to be deleted. get-iplayer records the date of every
+;; download and prints a notice if a recorded programme > 30 days
+;; has not been deleted yet.
 (defparameter *delete-string*
   "These programmes should be deleted:")
 

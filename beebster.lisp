@@ -1,4 +1,4 @@
-;;;; beebster.lisp
+ ;;;; beebster.lisp
 
 (in-package #:beebster)
 

@@ -8,9 +8,7 @@
   :depends-on (#:hunchentoot
                #:cl-who
                #:cl-ppcre
-	       #:drakma
 	       #:inferior-shell
-	       #:split-sequence
 	       #:fiveam)
   :components ((:file "package")
                (:file "beebster")

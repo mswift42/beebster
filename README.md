@@ -3,6 +3,11 @@ beebster
 
 Webgui for Get-Iplayer.
 
+Dependencies:
+-------------
+
+beebster uses [hunchentoot](http://weitz.de/hunchentoot/), [cl-who](http://weitz.de/cl-who/), [cl-ppcre](http://weitz.de/cl-ppcre/), [inferior-shell](http://www.cliki.net/inferior-shell) and [fiveam](http://common-lisp.net/project/fiveam/). All of these are available via [quicklisp](http://www.quicklisp.org/beta/)
+
 
 
 To try it out:
